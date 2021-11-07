@@ -8,7 +8,7 @@ server.use(express.json())
 // Route Params = /developers/2
 // Request Body = { nome: 'Nodejs', tipo: 'Backend'} (Passando um objeto no corpo da requisição)
 
-const cursos = [
+const developers = [
     {id: 1, nome: 'Luis', sexo: 'Masculino', idade: 24, dataNasc: '06/02/1997', hobby: 'Leitura'},
     {id: 2, nome: 'Ayrton', sexo: 'Masculino', idade: 25, dataNasc: '06/02/1996', hobby: 'Correr'},
     {id: 3, nome: 'Flavia', sexo: 'Feminino', idade: 26, dataNasc: '06/02/1995', hobby: 'Viajar'},
@@ -22,64 +22,85 @@ server.use((req, res, next) => {
     return next()
 })
 
-function checkCurso(req, res, next){
-    if(!req.body.name){
-        return res.status(400).json({error: 'Propriedade errada'})
+// Checagem se os parametros do corpo da função estão corretos
+function checkDeveloper(req, res, next){
+    if(!req.body.dev){
+        return res.status(400).json({error: 'Algo não está correto'})
     }
 
     return next()
 }
 
+// Verificação do numero elementos da lista
 function checkIndex(req, res, next){
-    const curso = cursos[req.params.index]
+    const developer = developers[req.params.index]
 
-    if(!curso){
-        return res.status(400).json({error: "Esse curso não existe"})
+    if(!developer){
+        return res.status(400).json({error: "Esse desenvolvedor não existe"})
     }
 
     return next()
 }
 
 
-//Listagem de todos os cursos
+//Listagem de todos os developers
 server.get('/developers', (req, res) => {
-    return res.json(cursos)
+    return res.json(developers)
 })
 
-// Listagem de um curso especificado pelo index
-server.get('/developers/:index', checkIndex, (req, res) => {
-    const { index } = req.params;
+// Listagem por index
+server.get('/developers/:id', (req, res) => {
+    const { id } = req.params;
+    const { nome } = req.body
+    const { sexo } = req.body
+    const { idade } = req.body
+    const { dataNasc } = req.body
+    const { hobby } = req.body
 
-    return res.json(cursos [index])
+    const objIndex = developers.findIndex((obj => obj.id == id));
+
+    return res.json(objIndex [id, nome, sexo, idade, dataNasc, hobby])
 })
 
-// Adicionar um curso
-server.post('/developers', checkCurso, (req, res) => {
-    const {name} = req.body
+// Listagem por parametros
+server.get('/developers', (req, res) => {
+    const {nome} = req.query
     
-    cursos.push(name);
-    
-
-    return res.json(cursos);
+    return res.json(developers [nome])
 })
 
-// Atualizar um curso (É necessario passar o index do curso a ser alterado)
-server.put('/developers/:index', checkCurso,checkIndex, (req, res) => {
-    const {index} = req.params
-    const { name } = req.body
 
-    cursos[index] = name
+// Adicionar um Desenvolvedor
+server.post('/developers', checkDeveloper,(req, res) => {
+    const {dev} = req.body
+    
+    dev.id = developers.length + 1
+    developers.push(dev);
+    
 
-    return res.json(name)
+    return res.json(developers);
 })
 
-// Deletar um curso (É necessario passar o index do curso a ser alterado)
-server.delete(`/developers/:index`, checkIndex, (req, res) => {
-    const { index } = req.params
-    const { name } = req.body
-    
-    cursos.splice(name, [index])
-    return res.json({ message: `O curso ${index} foi exluido`}) 
+// Atualizar um desenvolvedor
+server.put('/developers/:id', checkIndex, (req, res) => {
+    const {id} = req.params
+    const {dev} = req.body
+
+    const objIndex = developers.findIndex((obj => obj.id == id));
+    dev.id = id
+
+    developers[objIndex] = dev
+
+    return res.json(developers[objIndex])
+})
+
+// Deletar um desenvolvedor (É necessario passar o index do curso a ser alterado)
+server.delete(`/developers/:id`, checkIndex, (req, res) => {
+    const { id } = req.params
+
+    const objIndex = developers.findIndex((obj => obj.id == id));
+    developers.splice(objIndex, 1)
+    return res.json({ message: `O desenvolvedor ${id} foi exluido`}) 
 })
 
 server.listen(3000);
